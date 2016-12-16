@@ -4,6 +4,7 @@ import zmq
 import boto
 import warc
 import io
+import h11
 
 
 def consumer():
@@ -26,9 +27,16 @@ def consumer():
 
         record = warc.WARCReader(data).read_record()
 
-        print(record.url)
+        client = h11.Connection(h11.CLIENT)
 
-        # read warc
+        client.receive_data(record.payload.getvalue())
+
+        headers = client.next_event()
+
+        data = client.next_event()
+
+        print(headers)
+
         # get file type
         # extract text
         # write text
