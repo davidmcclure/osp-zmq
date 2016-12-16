@@ -2,6 +2,8 @@
 
 import zmq
 import boto
+import warc
+import io
 
 
 def consumer():
@@ -20,14 +22,16 @@ def consumer():
 
         key = bucket.get_key(path)
 
-        data = key.get_contents_as_string()
+        data = io.BytesIO(key.get_contents_as_string())
+
+        record = warc.WARCReader(data).read_record()
+
+        print(record.url)
 
         # read warc
         # get file type
         # extract text
         # write text
-
-        print(path)
 
 
 consumer()
