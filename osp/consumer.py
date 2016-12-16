@@ -43,7 +43,6 @@ def consumer():
 
         print(mime)
 
-        # get file type
         # extract text
         # write text
 
