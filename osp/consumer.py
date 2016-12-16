@@ -4,6 +4,7 @@ import zmq
 import boto
 import warc
 import io
+import magic
 import h11
 
 
@@ -23,9 +24,9 @@ def consumer():
 
         key = bucket.get_key(path)
 
-        data = io.BytesIO(key.get_contents_as_string())
+        contents = io.BytesIO(key.get_contents_as_string())
 
-        record = warc.WARCReader(data).read_record()
+        record = warc.WARCReader(contents).read_record()
 
         client = h11.Connection(h11.CLIENT)
 
@@ -35,7 +36,12 @@ def consumer():
 
         data = client.next_event()
 
-        print(headers)
+        if data == h11.NEED_DATA:
+            continue
+
+        mime = magic.from_buffer(bytes(data.data), mime=True)
+
+        print(mime)
 
         # get file type
         # extract text
