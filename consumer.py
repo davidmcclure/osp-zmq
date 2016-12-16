@@ -11,7 +11,7 @@ def consumer():
     receiver.connect('tcp://127.0.0.1:5557')
 
     while True:
-        work = receiver.recv_json()
+        work = receiver.recv_string()
         print(work)
 
 
