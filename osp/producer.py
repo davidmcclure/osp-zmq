@@ -1,8 +1,7 @@
 
 
 import zmq
-
-from boto.s3.connection import S3Connection
+import boto
 
 
 def producer():
@@ -12,7 +11,7 @@ def producer():
     socket = context.socket(zmq.PUSH)
     socket.bind('tcp://127.0.0.1:5557')
 
-    conn = S3Connection()
+    conn = boto.connect_s3()
 
     bucket = conn.get_bucket('syllascrape')
 
