@@ -12,7 +12,6 @@ def producer():
     socket.bind('tcp://127.0.0.1:5557')
 
     conn = boto.connect_s3()
-
     bucket = conn.get_bucket('syllascrape')
 
     for key in bucket.list():
