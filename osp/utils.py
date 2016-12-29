@@ -1,12 +1,14 @@
 
 
 import re
+import slate
 
 from bs4 import BeautifulSoup
+from io import BytesIO
 
 
 def html_to_text(b: bytearray, charset: str='utf8'):
-    """Extract text from an HTML response.
+    """Extract text from HTML.
     """
     html = b.decode(charset)
 
@@ -18,8 +20,10 @@ def html_to_text(b: bytearray, charset: str='utf8'):
     return tree.get_text()
 
 
-def pdf_to_text(b):
-    pass
+def pdf_to_text(b: bytearray):
+    """Extract text from a PDF.
+    """
+    return slate.PDF(BytesIO(b)).text()
 
 
 def docx_to_text(b):

@@ -7,7 +7,7 @@ import io
 import magic
 import h11
 
-from utils import html_to_text
+from utils import html_to_text, pdf_to_text
 
 
 def consumer():
@@ -43,8 +43,8 @@ def consumer():
 
         mime = magic.from_buffer(bytes(data.data), mime=True)
 
-        if mime == 'text/html':
-            text = html_to_text(data.data)
+        if mime == 'application/pdf':
+            text = pdf_to_text(data.data)
             print(text)
 
         # extract text
