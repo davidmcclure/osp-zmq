@@ -1,6 +1,5 @@
 
 
-import re
 import slate
 
 from bs4 import BeautifulSoup
@@ -24,7 +23,3 @@ def pdf_to_text(b: bytearray):
     """Extract text from a PDF.
     """
     return slate.PDF(BytesIO(b)).text()
-
-
-def docx_to_text(b):
-    pass

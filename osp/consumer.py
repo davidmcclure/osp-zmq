@@ -43,11 +43,16 @@ def consumer():
 
         mime = magic.from_buffer(bytes(data.data), mime=True)
 
-        if mime == 'application/pdf':
-            text = pdf_to_text(data.data)
-            print(text)
+        if mime == 'text/html':
+            text = html_to_text(data.data)
 
-        # extract text
+        elif mime == 'application/pdf':
+            text = pdf_to_text(data.data)
+
+        # TODO: docx
+
+        print(mime)
+
         # write text
 
 

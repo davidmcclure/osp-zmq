@@ -4,7 +4,9 @@ boto
 pyzmq
 python-magic
 h11
+python-docx
 bs4
+flake8
 
 -e git+https://github.com/wearpants/warc3@221dd345a2e10a7e3a944c8be2fd4a42d1d4d432#egg=warc
 -e git+https://github.com/rtouze/slate@python3#egg=slate
