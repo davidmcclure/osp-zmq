@@ -61,6 +61,8 @@ def consumer():
             elif mime == 'application/pdf':
                 text = pdf_to_text(data.data)
 
+            # TODO: docx
+
             if not text:
                 continue
 
