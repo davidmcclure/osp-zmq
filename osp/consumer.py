@@ -81,6 +81,12 @@ def consumer():
 
             print(record_id)
 
+            # dedupe
+            # classify syllabus / not syllabus
+            # ext institution
+            # ext field(s)
+            # ext citations
+
         except Exception as e:
             print(e)
 
