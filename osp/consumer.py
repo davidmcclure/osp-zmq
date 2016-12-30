@@ -85,4 +85,5 @@ def consumer():
             print(e)
 
 
-consumer()
+if __name__ == '__main__':
+    consumer()

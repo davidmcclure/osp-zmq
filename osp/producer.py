@@ -18,4 +18,5 @@ def producer():
         socket.send_string(key.name)
 
 
-producer()
+if __name__ == '__main__':
+    producer()
