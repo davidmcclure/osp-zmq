@@ -6,6 +6,9 @@ import warc
 import io
 import magic
 import h11
+import os
+
+from boto.s3.key import Key
 
 from utils import html_to_text, pdf_to_text
 
@@ -18,42 +21,66 @@ def consumer():
     receiver.connect('tcp://127.0.0.1:5557')
 
     conn = boto.connect_s3()
-    bucket = conn.get_bucket('syllascrape')
+    warc_bucket = conn.get_bucket('syllascrape')
+    text_bucket = conn.get_bucket('osp-pipeline-test')
 
     while True:
 
-        path = receiver.recv_string()
+        try:
 
-        key = bucket.get_key(path)
+            # Parse the WARC.
 
-        contents = io.BytesIO(key.get_contents_as_string())
+            warc_path = receiver.recv_string()
 
-        record = warc.WARCReader(contents).read_record()
+            warc_key = warc_bucket.get_key(warc_path)
 
-        client = h11.Connection(h11.CLIENT)
+            contents = io.BytesIO(warc_key.get_contents_as_string())
 
-        client.receive_data(record.payload.getvalue())
+            record = warc.WARCReader(contents).read_record()
 
-        headers = client.next_event()
+            client = h11.Connection(h11.CLIENT)
 
-        data = client.next_event()
+            client.receive_data(record.payload.getvalue())
 
-        if data == h11.NEED_DATA:
-            continue
+            headers = client.next_event()
 
-        mime = magic.from_buffer(bytes(data.data), mime=True)
+            data = client.next_event()
 
-        if mime == 'text/html':
-            text = html_to_text(data.data)
+            if data == h11.NEED_DATA:
+                continue
 
-        elif mime == 'application/pdf':
-            text = pdf_to_text(data.data)
+            # Extract text.
 
-        # TODO: docx
+            mime = magic.from_buffer(bytes(data.data), mime=True)
 
-        print(mime)
+            text = None
 
-        # write text
+            if mime == 'text/html':
+                text = html_to_text(data.data)
+
+            elif mime == 'application/pdf':
+                text = pdf_to_text(data.data)
+
+            if not text:
+                continue
+
+            # Write text.
+
+            path, _ = os.path.splitext(warc_path)
+
+            record_id = os.path.basename(path)
+
+            text_path = os.path.join('zmq', '{}.txt'.format(record_id))
+
+            text_key = Key(text_bucket)
+            text_key.key = text_path
+
+            text_key.set_contents_from_string(text)
+
+            print(record_id)
+
+        except Exception as e:
+            print(e)
 
 
 consumer()
