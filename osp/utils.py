@@ -11,7 +11,7 @@ def html_to_text(b: bytearray, charset: str='utf8'):
     """
     html = b.decode(charset)
 
-    tree = BeautifulSoup(html, 'html')
+    tree = BeautifulSoup(html, 'html.parser')
 
     for tag in tree(['script', 'style']):
         tag.extract()

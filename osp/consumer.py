@@ -10,7 +10,58 @@ import os
 
 from boto.s3.key import Key
 
-from utils import html_to_text, pdf_to_text
+from osp.utils import html_to_text, pdf_to_text
+from osp import buckets
+
+
+class Response:
+
+    @classmethod
+    def from_s3(cls, path):
+        """Read from a S3 key.
+
+        Args:
+            path (str): The s3 WARC path.
+        """
+        key = buckets.warcs.get_key(path)
+
+        blob = io.BytesIO(key.get_contents_as_string())
+
+        return cls(blob)
+
+    def __init__(self, blob):
+        """Parse the binary WARC data.
+
+        Args:
+            blob: The WARC, as a binary blob.
+        """
+        self.record = warc.WARCReader(blob).read_record()
+
+        client = h11.Connection(h11.CLIENT)
+
+        client.receive_data(self.record.payload.getvalue())
+
+        self.headers = client.next_event()
+
+        self.data = client.next_event()
+
+    def text(self):
+        """Extract plain text.
+
+        Returns: str
+        """
+        if self.data == h11.NEED_DATA:
+            return None
+
+        mime = magic.from_buffer(bytes(self.data.data), mime=True)
+
+        if mime == 'text/html':
+            return html_to_text(self.data.data)
+
+        elif mime == 'application/pdf':
+            return pdf_to_text(self.data.data)
+
+        # TODO: docx
 
 
 def consumer():
@@ -21,7 +72,6 @@ def consumer():
     receiver.connect('tcp://127.0.0.1:5557')
 
     conn = boto.connect_s3()
-    warc_bucket = conn.get_bucket('syllascrape')
     text_bucket = conn.get_bucket('osp-pipeline-test')
 
     while True:
@@ -32,36 +82,11 @@ def consumer():
 
             warc_path = receiver.recv_string()
 
-            warc_key = warc_bucket.get_key(warc_path)
-
-            contents = io.BytesIO(warc_key.get_contents_as_string())
-
-            record = warc.WARCReader(contents).read_record()
-
-            client = h11.Connection(h11.CLIENT)
-
-            client.receive_data(record.payload.getvalue())
-
-            headers = client.next_event()
-
-            data = client.next_event()
-
-            if data == h11.NEED_DATA:
-                continue
+            response = Response.from_s3(warc_path)
 
             # Extract text.
 
-            mime = magic.from_buffer(bytes(data.data), mime=True)
-
-            text = None
-
-            if mime == 'text/html':
-                text = html_to_text(data.data)
-
-            elif mime == 'application/pdf':
-                text = pdf_to_text(data.data)
-
-            # TODO: docx
+            text = response.text()
 
             if not text:
                 continue
