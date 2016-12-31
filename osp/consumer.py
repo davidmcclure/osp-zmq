@@ -10,6 +10,7 @@ import os
 
 from boto.s3.key import Key
 
+from osp.services import config
 from osp.utils import html_to_text, pdf_to_text
 from osp import buckets
 
@@ -76,7 +77,8 @@ def consumer():
     context = zmq.Context()
 
     receiver = context.socket(zmq.PULL)
-    receiver.connect('tcp://127.0.0.1:5557')
+
+    receiver.connect('tcp://{}:5557'.format(config['zmq_host']))
 
     while True:
 
