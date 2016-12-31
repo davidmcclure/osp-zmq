@@ -1,5 +1,7 @@
 
 ipython
+anyconfig
+PyYAML
 boto
 pyzmq
 python-magic
