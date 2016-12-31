@@ -63,6 +63,13 @@ class Response:
 
         # TODO: docx
 
+    def record_id(self):
+        """Provide the record UUID.
+
+        Returns: str
+        """
+        return self.record.header.record_id.strip('<>').split(':')[-1]
+
 
 def consumer():
 
@@ -70,9 +77,6 @@ def consumer():
 
     receiver = context.socket(zmq.PULL)
     receiver.connect('tcp://127.0.0.1:5557')
-
-    conn = boto.connect_s3()
-    text_bucket = conn.get_bucket('osp-pipeline-test')
 
     while True:
 
@@ -93,13 +97,11 @@ def consumer():
 
             # Write text.
 
-            path, _ = os.path.splitext(warc_path)
-
-            record_id = os.path.basename(path)
+            record_id = response.record_id()
 
             text_path = os.path.join('zmq', '{}.txt'.format(record_id))
 
-            text_key = Key(text_bucket)
+            text_key = Key(buckets.texts)
             text_key.key = text_path
 
             text_key.set_contents_from_string(text)
