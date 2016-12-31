@@ -13,7 +13,7 @@ class Config(dict):
         Get a config instance with the default files.
         """
 
-        root = os.environ.get('OSP_CONFIG', '~/.osp')
+        root = os.environ.get('OSP_CONFIG', '/etc/osp')
 
         # Default paths.
         paths = [

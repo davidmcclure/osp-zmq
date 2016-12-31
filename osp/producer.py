@@ -3,15 +3,13 @@
 import zmq
 import boto
 
-from osp.services import config
-
 
 def producer():
 
     context = zmq.Context()
 
     socket = context.socket(zmq.PUSH)
-    socket.bind('tcp://{}:5557'.format(config['zmq_host']))
+    socket.bind('tcp://*:5557')
 
     conn = boto.connect_s3()
     bucket = conn.get_bucket('syllascrape')
