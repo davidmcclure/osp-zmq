@@ -101,7 +101,7 @@ def consumer():
 
             record_id = response.record_id()
 
-            text_path = os.path.join('zmq', '{}.txt'.format(record_id))
+            text_path = os.path.join('zmq2', '{}.txt'.format(record_id))
 
             text_key = Key(buckets.texts)
             text_key.key = text_path
