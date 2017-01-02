@@ -66,8 +66,6 @@ class Response:
         elif mime == 'application/msword':
             return docx_to_text(self.data.data)
 
-        # TODO: docx
-
     def record_id(self):
         """Provide the record UUID.
 
@@ -101,11 +99,12 @@ def consumer():
             if not text:
                 continue
 
+            # TODO|dev
             # Write text.
 
             record_id = response.record_id()
 
-            text_path = os.path.join('zmq2', '{}.txt'.format(record_id))
+            text_path = os.path.join('zmq3', '{}.txt'.format(record_id))
 
             text_key = Key(buckets.texts)
             text_key.key = text_path
