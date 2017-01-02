@@ -1,6 +1,7 @@
 
 
 import slate
+import docx
 
 from bs4 import BeautifulSoup
 from io import BytesIO
@@ -23,3 +24,11 @@ def pdf_to_text(b: bytearray):
     """Extract text from a PDF.
     """
     return slate.PDF(BytesIO(b)).text()
+
+
+def docx_to_text(b: bytearray):
+    """Extract text from a DOCX.
+    """
+    document = docx.Document(BytesIO(b))
+
+    return '\n'.join([p.text for p in document.paragraphs])

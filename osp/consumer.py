@@ -11,7 +11,7 @@ import os
 from boto.s3.key import Key
 
 from osp.services import config
-from osp.utils import html_to_text, pdf_to_text
+from osp.utils import html_to_text, pdf_to_text, docx_to_text
 from osp import buckets
 
 
@@ -55,12 +55,16 @@ class Response:
             return None
 
         mime = magic.from_buffer(bytes(self.data.data), mime=True)
+        print(mime)
 
         if mime == 'text/html':
             return html_to_text(self.data.data)
 
         elif mime == 'application/pdf':
             return pdf_to_text(self.data.data)
+
+        elif mime == 'application/msword':
+            return docx_to_text(self.data.data)
 
         # TODO: docx
 
