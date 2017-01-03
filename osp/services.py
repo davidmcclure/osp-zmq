@@ -1,7 +1,5 @@
 
 
-import boto
-
 from osp.config import Config
 
 

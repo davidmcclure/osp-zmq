@@ -2,17 +2,11 @@
 
 import zmq
 import boto
-import warc
 import io
-import magic
-import h11
 import os
 
-from datetime import datetime as dt
 from boto.s3.key import Key
-from multiprocessing import Process
 
-from osp.services import config
 from osp.scraper_warc import ScraperWARC
 
 

@@ -1,6 +1,5 @@
 
 
-import io
 import warc
 import h11
 import magic
