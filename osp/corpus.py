@@ -17,76 +17,74 @@ from osp.scraper_warc import ScraperWARC
 from osp import buckets
 
 
-def ventilator():
+class Ventilator:
 
-    context = zmq.Context()
+    def __init__(self):
+        """Initialize the push socket.
+        """
+        context = zmq.Context()
 
-    sender = context.socket(zmq.PUSH)
-    sender.bind('tcp://*:5557')
+        self.sender = context.socket(zmq.PUSH)
+        self.sender.bind('tcp://*:5557')
 
-    conn = boto.connect_s3()
-    bucket = conn.get_bucket('syllascrape')
+    def __call__(self):
+        """Broadcast tasks.
+        """
+        for task in self.tasks():
+            self.sender.send_string(task)
 
-    for i, key in enumerate(bucket.list()):
+    def tasks(self):
+        """Generate WARC paths.
 
-        sender.send_string(key.name)
+        Returns: iter
+        """
+        s3 = boto.connect_s3()
+        bucket = s3.get_bucket('syllascrape')
 
-        if i % 1000 == 0:
-            print(dt.now().isoformat(), i)
+        for key in bucket.list():
+            yield key.name
 
 
-def worker():
+class Worker:
 
-    context = zmq.Context()
+    def __init__(self):
+        """Initialize the pull socket.
+        """
+        context = zmq.Context()
 
-    receiver = context.socket(zmq.PULL)
-    receiver.connect('tcp://{}:5557'.format(config['zmq_host']))
+        self.receiver = context.socket(zmq.PULL)
+        self.receiver.connect('tcp://{}:5557'.format(config['zmq_host']))
 
-    while True:
+    def __call__(self):
+        """Pull tasks from ventilator.
+        """
+        while True:
 
-        try:
+            try:
+                task = self.receiver.recv_string()
+                self.process(task)
+                print(task)
 
-            # Parse the WARC.
+            except Exception as e:
+                print(e)
 
-            warc_path = receiver.recv_string()
+    def process(self, warc_path):
+        """Extract text, write to S3.
 
-            warc = ScraperWARC.from_s3(warc_path)
+        Args:
+            warc_path (str): WARC S3 path.
+        """
+        # Extract text.
+        warc = ScraperWARC.from_s3(warc_path)
+        text = warc.text()
 
-            # Extract text.
+        if text:
 
-            text = warc.text()
-
-            if not text:
-                continue
+            # Form S3 path.
+            record_id = warc.record_id()
+            text_path = os.path.join('zmq4', '{}.txt'.format(record_id))
 
             # Write text.
-
-            record_id = warc.record_id()
-
-            text_path = os.path.join('zmq3', '{}.txt'.format(record_id))
-
             text_key = Key(buckets.texts)
             text_key.key = text_path
-
-            # text_key.set_contents_from_string(text)
-            print(record_id)
-
-        except Exception as e:
-            print(e)
-
-
-class Job:
-
-    def __init__(self, ventilator, worker):
-        self.ventilator = ventilator
-        self.worker = worker
-
-    def run_local(self, n=2):
-        """Spawn local procs for the ventilator and worker.
-        """
-        # Run ventilator.
-        Process(target=ventilator).start()
-
-        # Run workers.
-        for _ in range(n):
-            Process(target=worker).start()
+            text_key.set_contents_from_string(text)
