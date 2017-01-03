@@ -20,10 +20,13 @@ class Ventilator:
         self.sender = context.socket(zmq.PUSH)
         self.sender.bind('tcp://*:{}'.format(port))
 
-    def __call__(self):
+    def __call__(self, tasks):
         """Broadcast tasks.
+
+        Args:
+            tasks (func): A function that generates tasks.
         """
-        for task in self.tasks():
+        for task in tasks():
             self.sender.send_string(task)
 
 
@@ -37,21 +40,23 @@ class Worker:
         self.receiver = context.socket(zmq.PULL)
         self.receiver.connect('tcp://{}:{}'.format(host, port))
 
-    def __call__(self):
+    def __call__(self, work):
         """Pull tasks from ventilator.
+
+        Args:
+            work (func): A worker function.
         """
         while True:
 
             try:
                 task = self.receiver.recv_string()
-                self.process(task)
-                print(task)
+                work(task)
 
             except Exception as e:
                 print(e)
 
 
-class CorpusVentilator:
+class ListWARCPaths:
 
     def __init__(self, bucket):
         """Create the bucket instance.
@@ -71,7 +76,7 @@ class CorpusVentilator:
             yield key.name
 
 
-class CorpusWorker:
+class ParseWARC:
 
     def __init__(self, warc_bucket, text_bucket, text_prefix):
         """Set input + output buckets.
