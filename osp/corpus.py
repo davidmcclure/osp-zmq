@@ -70,6 +70,7 @@ class CorpusVentilator(Ventilator):
 
         Returns: iter
         """
+        # TODO: ENV-ify the bucket.
         s3 = boto.connect_s3()
         bucket = s3.get_bucket('syllascrape')
 
