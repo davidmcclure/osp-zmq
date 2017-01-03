@@ -6,23 +6,9 @@ import h11
 import magic
 
 from osp.utils import html_to_text, pdf_to_text, docx_to_text
-from osp import buckets
 
 
 class ScraperWARC:
-
-    @classmethod
-    def from_s3(cls, path):
-        """Read from a S3 key.
-
-        Args:
-            path (str): The s3 WARC path.
-        """
-        key = buckets.warcs.get_key(path)
-
-        blob = io.BytesIO(key.get_contents_as_string())
-
-        return cls(blob)
 
     def __init__(self, blob):
         """Parse the binary WARC data.

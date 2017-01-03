@@ -85,16 +85,20 @@ class CorpusVentilator:
 
 class CorpusWorker:
 
-    def __init__(self, bucket, prefix):
+    def __init__(self, warc_bucket, text_bucket, text_prefix):
         """Set output bucket and path prefix.
 
         Args:
-            bucket (str): Name of output bucket.
-            prefix (str): Path prefix inside of bucket.
+            warc_bucket (str): Scraper bucket.
+            text_bucket (str): Text bucket.
+            text_prefix (str): Path prefix inside of text bucket.
         """
         s3 = boto.connect_s3()
-        self.bucket = s3.get_bucket(bucket)
-        self.prefix = prefix
+
+        self.warc_bucket = s3.get_bucket(warc_bucket)
+        self.text_bucket = s3.get_bucket(text_bucket)
+
+        self.text_prefix = text_prefix
 
     def __call__(self, warc_path):
         """Extract text, write to S3.
@@ -102,17 +106,25 @@ class CorpusWorker:
         Args:
             warc_path (str): WARC S3 path.
         """
+        # Pull WARC from S3.
+        key = self.warc_bucket.get_key(warc_path)
+        blob = io.BytesIO(key.get_contents_as_string())
+
         # Extract text.
-        warc = ScraperWARC.from_s3(warc_path)
+        warc = ScraperWARC(blob)
         text = warc.text()
 
         if text:
 
             # Form S3 path.
             record_id = warc.record_id()
-            text_path = os.path.join(self.prefix, '{}.txt'.format(record_id))
+
+            text_path = os.path.join(
+                self.text_prefix,
+                '{}.txt'.format(record_id),
+            )
 
             # Write text.
-            text_key = Key(self.buckets)
+            text_key = Key(self.text_bucket)
             text_key.key = text_path
             text_key.set_contents_from_string(text)
