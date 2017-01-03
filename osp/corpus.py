@@ -19,13 +19,13 @@ from osp import buckets
 
 class Ventilator:
 
-    def __init__(self):
+    def __init__(self, port=5557):
         """Initialize the push socket.
         """
         context = zmq.Context()
 
         self.sender = context.socket(zmq.PUSH)
-        self.sender.bind('tcp://*:5557')
+        self.sender.bind('tcp://*:{}'.format(port))
 
     def __call__(self):
         """Broadcast tasks.
@@ -34,26 +34,18 @@ class Ventilator:
             self.sender.send_string(task)
 
     def tasks(self):
-        """Generate WARC paths.
-
-        Returns: iter
-        """
-        s3 = boto.connect_s3()
-        bucket = s3.get_bucket('syllascrape')
-
-        for key in bucket.list():
-            yield key.name
+        raise NotImplementedError
 
 
 class Worker:
 
-    def __init__(self):
+    def __init__(self, host, port=5557):
         """Initialize the pull socket.
         """
         context = zmq.Context()
 
         self.receiver = context.socket(zmq.PULL)
-        self.receiver.connect('tcp://{}:5557'.format(config['zmq_host']))
+        self.receiver.connect('tcp://{}:{}'.format(host, port))
 
     def __call__(self):
         """Pull tasks from ventilator.
@@ -67,6 +59,26 @@ class Worker:
 
             except Exception as e:
                 print(e)
+
+    def process(self, task):
+        raise NotImplementedError
+
+
+class CorpusVentilator(Ventilator):
+
+    def tasks(self):
+        """Generate WARC paths.
+
+        Returns: iter
+        """
+        s3 = boto.connect_s3()
+        bucket = s3.get_bucket('syllascrape')
+
+        for key in bucket.list():
+            yield key.name
+
+
+class CorpusWorker(Worker):
 
     def process(self, warc_path):
         """Extract text, write to S3.
