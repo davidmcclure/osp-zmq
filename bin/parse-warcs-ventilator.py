@@ -3,8 +3,8 @@
 from osp.pipeline import Ventilator, ListWARCPaths
 
 
-tasks = ListWARCPaths()
+ventilate = Ventilator.from_env()
 
-ventilator = Ventilator(tasks)
+list_paths = ListWARCPaths.from_env()
 
-ventilator()
+ventilate(list_paths)
