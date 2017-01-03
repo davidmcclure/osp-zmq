@@ -1,3 +1,14 @@
 ---
 
-zmq_host: 127.0.0.1
+hosts:
+  master: localhost
+
+ports:
+  ventilator: 5557
+
+buckets:
+  scraper: syllascrape
+  results: osp-pipeline-test
+
+dirs:
+  text: text

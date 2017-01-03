@@ -8,9 +8,14 @@ import os
 from boto.s3.key import Key
 
 from osp.scraper_warc import ScraperWARC
+from osp.services import config
 
 
 class Ventilator:
+
+    @classmethod
+    def from_env(cls):
+        return cls(config['ports']['ventilator'])
 
     def __init__(self, port):
         """Initialize the push socket.
@@ -31,6 +36,13 @@ class Ventilator:
 
 
 class Worker:
+
+    @classmethod
+    def from_env(cls):
+        return cls(
+            config['hosts']['master'],
+            config['ports']['ventilator'],
+        )
 
     def __init__(self, host, port):
         """Initialize the pull socket.
@@ -58,6 +70,10 @@ class Worker:
 
 class ListWARCPaths:
 
+    @classmethod
+    def from_env(cls):
+        return cls(config['buckets']['scraper'])
+
     def __init__(self, bucket):
         """Create the bucket instance.
 
@@ -78,20 +94,28 @@ class ListWARCPaths:
 
 class ParseWARC:
 
-    def __init__(self, warc_bucket, text_bucket, text_prefix):
+    @classmethod
+    def from_env(cls):
+        return cls(
+            config['buckets']['scraper'],
+            config['buckets']['results'],
+            config['dirs']['text'],
+        )
+
+    def __init__(self, warc_bucket, text_bucket, text_dir):
         """Set input + output buckets.
 
         Args:
             warc_bucket (str): Scraper bucket.
             text_bucket (str): Text bucket.
-            text_prefix (str): Path prefix inside of text bucket.
+            text_dir (str): Path prefix inside of text bucket.
         """
         s3 = boto.connect_s3()
 
         self.warc_bucket = s3.get_bucket(warc_bucket)
         self.text_bucket = s3.get_bucket(text_bucket)
 
-        self.text_prefix = text_prefix
+        self.text_dir = text_dir
 
     def __call__(self, warc_path):
         """Extract text, write to S3.
@@ -113,7 +137,7 @@ class ParseWARC:
             record_id = warc.record_id()
 
             text_path = os.path.join(
-                self.text_prefix,
+                self.text_dir,
                 '{}.txt'.format(record_id),
             )
 
