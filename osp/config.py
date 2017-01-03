@@ -8,11 +8,8 @@ class Config(dict):
 
     @classmethod
     def from_env(cls):
-
+        """Get a config instance with the default files.
         """
-        Get a config instance with the default files.
-        """
-
         root = os.environ.get('OSP_CONFIG', '/etc/osp')
 
         # Default paths.
@@ -24,14 +21,11 @@ class Config(dict):
         return cls(paths)
 
     def __init__(self, paths):
-
-        """
-        Initialize the configuration object.
+        """Initialize the configuration object.
 
         Args:
             paths (list): YAML paths, from most to least specific.
         """
-
         config = anyconfig.load(paths, ignore_missing=True)
 
         return super().__init__(config)
