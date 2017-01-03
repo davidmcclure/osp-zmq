@@ -18,7 +18,7 @@ from osp.scraper_warc import ScraperWARC
 
 class Ventilator:
 
-    def __init__(self, port=5557):
+    def __init__(self, port):
         """Initialize the push socket.
         """
         context = zmq.Context()
@@ -38,7 +38,7 @@ class Ventilator:
 
 class Worker:
 
-    def __init__(self, host, port=5557):
+    def __init__(self, host, port):
         """Initialize the pull socket.
         """
         context = zmq.Context()
@@ -63,24 +63,40 @@ class Worker:
         raise NotImplementedError
 
 
-class CorpusVentilator(Ventilator):
+class CorpusVentilator:
 
-    def tasks(self):
+    def __init__(self, bucket):
+        """Create the bucket instance.
+
+        Args:
+            bucket (str): Name of the scraper bucket.
+        """
+        s3 = boto.connect_s3()
+        self.bucket = s3.get_bucket(bucket)
+
+    def __call__(self):
         """Generate WARC paths.
 
         Returns: iter
         """
-        # TODO: ENV-ify the bucket.
-        s3 = boto.connect_s3()
-        bucket = s3.get_bucket('syllascrape')
-
-        for key in bucket.list():
+        for key in self.bucket.list():
             yield key.name
 
 
-class CorpusWorker(Worker):
+class CorpusWorker:
 
-    def process(self, warc_path):
+    def __init__(self, bucket, prefix):
+        """Set output bucket and path prefix.
+
+        Args:
+            bucket (str): Name of output bucket.
+            prefix (str): Path prefix inside of bucket.
+        """
+        s3 = boto.connect_s3()
+        self.bucket = s3.get_bucket(bucket)
+        self.prefix = prefix
+
+    def __call__(self, warc_path):
         """Extract text, write to S3.
 
         Args:
@@ -92,14 +108,11 @@ class CorpusWorker(Worker):
 
         if text:
 
-            # TODO: Initialize output bucket.
-            # TODO: ENV-ify the prefix.
-
             # Form S3 path.
             record_id = warc.record_id()
-            text_path = os.path.join('zmq4', '{}.txt'.format(record_id))
+            text_path = os.path.join(self.prefix, '{}.txt'.format(record_id))
 
             # Write text.
-            text_key = Key(buckets.texts)
+            text_key = Key(self.buckets)
             text_key.key = text_path
             text_key.set_contents_from_string(text)
