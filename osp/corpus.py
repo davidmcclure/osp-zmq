@@ -32,9 +32,6 @@ class Ventilator:
         for task in self.tasks():
             self.sender.send_string(task)
 
-    def tasks(self):
-        raise NotImplementedError
-
 
 class Worker:
 
@@ -58,9 +55,6 @@ class Worker:
 
             except Exception as e:
                 print(e)
-
-    def process(self, task):
-        raise NotImplementedError
 
 
 class CorpusVentilator:
@@ -86,7 +80,7 @@ class CorpusVentilator:
 class CorpusWorker:
 
     def __init__(self, warc_bucket, text_bucket, text_prefix):
-        """Set output bucket and path prefix.
+        """Set input + output buckets.
 
         Args:
             warc_bucket (str): Scraper bucket.
