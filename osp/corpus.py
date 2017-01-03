@@ -14,7 +14,6 @@ from multiprocessing import Process
 
 from osp.services import config
 from osp.scraper_warc import ScraperWARC
-from osp import buckets
 
 
 class Ventilator:
@@ -91,6 +90,9 @@ class CorpusWorker(Worker):
         text = warc.text()
 
         if text:
+
+            # TODO: Initialize output bucket.
+            # TODO: ENV-ify the prefix.
 
             # Form S3 path.
             record_id = warc.record_id()
