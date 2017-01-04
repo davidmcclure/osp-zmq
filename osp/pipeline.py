@@ -201,7 +201,7 @@ class ParseWARC:
         return dict(
             corpus='syllascrape',
             identifier=record_id,
-            url=record.url(),
+            url=warc.url(),
         )
 
 
