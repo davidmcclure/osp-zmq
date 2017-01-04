@@ -50,3 +50,10 @@ class ScraperWARC:
         Returns: str
         """
         return self.record.header.record_id.strip('<>').split(':')[-1]
+
+    def url(self):
+        """Provide the source URL.
+
+        Returns: str
+        """
+        return self.record.url

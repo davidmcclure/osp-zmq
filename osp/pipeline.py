@@ -7,8 +7,9 @@ import os
 
 from boto.s3.key import Key
 
+from osp.services import config, session
 from osp.scraper_warc import ScraperWARC
-from osp.services import config
+from osp.models import Document
 
 
 class Ventilator:
@@ -197,9 +198,16 @@ class ParseWARC:
             text_key.set_contents_from_string(text)
 
         # TODO: Get metadata.
-        return dict(record_id=record_id)
+        return dict(
+            corpus='syllascrape',
+            identifier=record_id,
+            url=record.url(),
+        )
 
 
 # TODO|dev
 def write_doc_metadata(doc):
-    print(doc)
+    """Write document metadata to database.
+    """
+    session.add(Document(**doc))
+    session.commit()

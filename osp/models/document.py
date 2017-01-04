@@ -12,3 +12,5 @@ class Document(Base):
     corpus = Column(String, primary_key=True)
 
     identifier = Column(String, primary_key=True)
+
+    url = Column(String)
