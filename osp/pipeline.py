@@ -179,11 +179,11 @@ class ParseWARC:
         warc = ScraperWARC(blob)
         text = warc.text()
 
+        record_id = warc.record_id()
+
         if text:
 
             # Form S3 path.
-            record_id = warc.record_id()
-
             text_path = os.path.join(
                 self.text_dir,
                 '{}.txt'.format(record_id),
@@ -193,3 +193,6 @@ class ParseWARC:
             text_key = Key(self.text_bucket)
             text_key.key = text_path
             text_key.set_contents_from_string(text)
+
+        # TODO: Get metadata.
+        return dict(record_id=record_id)
