@@ -201,5 +201,5 @@ class ParseWARC:
 
 
 # TODO|dev
-def write_text_metadata(text):
-    print(text)
+def write_doc_metadata(doc):
+    print(doc)

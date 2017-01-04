@@ -1,8 +1,8 @@
 
 
-from osp.pipeline import Sink, write_text_metadata
+from osp.pipeline import Sink, write_doc_metadata
 
 
 drain = Sink.from_env()
 
-drain(write_text_metadata)
+drain(write_doc_metadata)
