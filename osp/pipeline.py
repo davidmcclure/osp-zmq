@@ -109,8 +109,8 @@ class Sink:
         while True:
 
             try:
-                task = self.socket.recv_json()
-                drain(**task)
+                result = self.socket.recv_json()
+                drain(result)
 
             except Exception as e:
                 print(e)
