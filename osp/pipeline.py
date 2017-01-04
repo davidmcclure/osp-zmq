@@ -22,8 +22,8 @@ class Ventilator:
         """
         context = zmq.Context()
 
-        self.sender = context.socket(zmq.PUSH)
-        self.sender.bind('tcp://*:{}'.format(port))
+        self.socket = context.socket(zmq.PUSH)
+        self.socket.bind('tcp://*:{}'.format(port))
 
     def __call__(self, tasks):
         """Broadcast tasks.
@@ -32,7 +32,7 @@ class Ventilator:
             tasks (func): A function that generates tasks.
         """
         for task in tasks():
-            self.sender.send_json(task)
+            self.socket.send_json(task)
 
 
 class Worker:
@@ -47,6 +47,11 @@ class Worker:
 
     def __init__(self, host, pull_port, push_port):
         """Initialize the sockets.
+
+        Args:
+            host (str): The master host.
+            pull_port (int): Ventilator port.
+            push_port (int): Sink port.
         """
         context = zmq.Context()
 
@@ -73,6 +78,39 @@ class Worker:
                 # If a value is returned, push it back to the master.
                 if result:
                     self.sink.send_json(result)
+
+            except Exception as e:
+                print(e)
+
+
+class Sink:
+
+    @classmethod
+    def from_env(cls):
+        return cls(config['ports']['sink'])
+
+    def __init__(self, port):
+        """Initialize the socket.
+
+        Args:
+            port (int): Sink port.
+        """
+        context = zmq.Context()
+
+        self.socket = context.socket(zmq.PULL)
+        self.socket.connect('tcp://*:{}'.format(port))
+
+    def __call__(self, drain):
+        """Pull tasks from workers.
+
+        Args:
+            drain (func): Handle / persist results.
+        """
+        while True:
+
+            try:
+                task = self.socket.recv_json()
+                drain(**task)
 
             except Exception as e:
                 print(e)
