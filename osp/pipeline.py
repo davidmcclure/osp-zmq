@@ -98,7 +98,7 @@ class Sink:
         context = zmq.Context()
 
         self.socket = context.socket(zmq.PULL)
-        self.socket.connect('tcp://*:{}'.format(port))
+        self.socket.bind('tcp://*:{}'.format(port))
 
     def __call__(self, drain):
         """Pull tasks from workers.
