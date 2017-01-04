@@ -108,6 +108,8 @@ class Sink:
         """
         while True:
 
+            # TODO: Pass chunks?
+
             try:
                 result = self.socket.recv_json()
                 drain(result)
