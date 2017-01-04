@@ -196,3 +196,8 @@ class ParseWARC:
 
         # TODO: Get metadata.
         return dict(record_id=record_id)
+
+
+# TODO|dev
+def write_text_metadata(text):
+    print(text)
