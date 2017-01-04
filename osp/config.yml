@@ -5,6 +5,7 @@ hosts:
 
 ports:
   ventilator: 5557
+  sink: 5558
 
 buckets:
   scraper: syllascrape

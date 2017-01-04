@@ -42,18 +42,22 @@ class Worker:
         return cls(
             config['hosts']['master'],
             config['ports']['ventilator'],
+            config['ports']['sink'],
         )
 
-    def __init__(self, host, port):
-        """Initialize the pull socket.
+    def __init__(self, host, pull_port, push_port):
+        """Initialize the sockets.
         """
         context = zmq.Context()
 
-        self.receiver = context.socket(zmq.PULL)
-        self.receiver.connect('tcp://{}:{}'.format(host, port))
+        self.ventilator = context.socket(zmq.PULL)
+        self.ventilator.connect('tcp://{}:{}'.format(host, pull_port))
+
+        self.sink = context.socket(zmq.PUSH)
+        self.sink.connect('tcp://{}:{}'.format(host, push_port))
 
     def __call__(self, work):
-        """Pull tasks from ventilator.
+        """Pull tasks from ventilator, push results to sink.
 
         Args:
             work (func): A worker function.
@@ -61,8 +65,14 @@ class Worker:
         while True:
 
             try:
-                task = self.receiver.recv_json()
-                work(**task)
+
+                # Pop task, process.
+                task = self.ventilator.recv_json()
+                result = work(**task)
+
+                # If a value is returned, push it back to the master.
+                if result:
+                    self.sink.send_json(result)
 
             except Exception as e:
                 print(e)
