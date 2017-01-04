@@ -32,7 +32,7 @@ class Ventilator:
             tasks (func): A function that generates tasks.
         """
         for task in tasks():
-            self.sender.send_string(task)
+            self.sender.send_json(task)
 
 
 class Worker:
@@ -61,8 +61,8 @@ class Worker:
         while True:
 
             try:
-                task = self.receiver.recv_string()
-                work(task)
+                task = self.receiver.recv_json()
+                work(**task)
 
             except Exception as e:
                 print(e)
@@ -89,7 +89,7 @@ class ListWARCPaths:
         Returns: iter
         """
         for key in self.bucket.list():
-            yield key.name
+            yield dict(warc_path=key.name)
 
 
 class ParseWARC:
