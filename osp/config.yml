@@ -1,5 +1,7 @@
 ---
 
+database: osp.db
+
 hosts:
   master: localhost
 
