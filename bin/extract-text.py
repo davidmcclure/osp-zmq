@@ -2,13 +2,15 @@
 
 from distributed import Client
 
-from osp.pipeline import ListWARCPaths, ParseWARC
+from osp.pipeline import ScraperBucket, ExtractText
 
 
 client = Client()
 
-paths = ListWARCPaths.from_env()
+bucket = ScraperBucket.from_env()
 
-parse_warc = ParseWARC.from_env()
+paths = bucket.first_n_paths('oct-16', 1000)
 
-docs = client.map(parse_warc, paths())
+extract_text = ExtractText.from_env()
+
+text = client.map(extract_text, paths)
