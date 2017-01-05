@@ -10,28 +10,60 @@ from osp.services import config
 from osp.scraper_warc import ScraperWARC
 
 
+class SyllascrapeBucket:
+
+    def __init__(self, name):
+        """Connect to the bucket.
+        """
+        s3 = boto.connect_s3()
+        self.bucket = s3.get_bucket(name)
+
+    def site_directories(self, crawl):
+        """Get the full list of run directories for a crawl.
+
+        Args:
+            crawl (str): The crawl identifier.
+
+        Returns: A list of uuids.
+        """
+        for key in self.bucket.list(crawl+'/', '/'):
+            yield os.path.basename(key.name.strip('/'))
+
+
+
 class ListWARCPaths:
 
     @classmethod
     def from_env(cls):
         return cls(config['buckets']['scraper'])
 
-    def __init__(self, bucket):
+    def __init__(self, bucket, spider_run='oct-16', prefixes=None):
         """Create the bucket instance.
 
         Args:
             bucket (str): Name of the scraper bucket.
+            spider_run (str): The spider run directory.
+            prefixes (list): Only include crawl directories with uuids that
+                start with a value in this list.
         """
         s3 = boto.connect_s3()
         self.bucket = s3.get_bucket(bucket)
+
+        self.spider_run = spider_run
+        self.prefixes = prefixes
 
     def __call__(self):
         """Generate WARC paths.
 
         Returns: iter
         """
-        for key in self.bucket.list():
-            yield key.name
+        dirs = self.bucket.list(self.spider_run+'/', '/')
+
+        for d in dirs:
+            yield d.name
+
+        # for key in self.bucket.list():
+            # yield key.name
 
 
 class ParseWARC:

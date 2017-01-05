@@ -11,4 +11,4 @@ paths = ListWARCPaths.from_env()
 
 parse_warc = ParseWARC.from_env()
 
-docs = client.map(parse_warc, paths)
+docs = client.map(parse_warc, paths())
