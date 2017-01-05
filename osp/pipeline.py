@@ -3,6 +3,7 @@
 import zmq
 import boto
 import io
+import uuid
 import os
 
 from boto.s3.key import Key
@@ -43,24 +44,19 @@ class Worker:
         return cls(
             config['hosts']['master'],
             config['ports']['ventilator'],
-            config['ports']['sink'],
         )
 
-    def __init__(self, host, pull_port, push_port):
+    def __init__(self, host, port):
         """Initialize the sockets.
 
         Args:
             host (str): The master host.
-            pull_port (int): Ventilator port.
-            push_port (int): Sink port.
+            port (int): Ventilator port.
         """
         context = zmq.Context()
 
         self.ventilator = context.socket(zmq.PULL)
-        self.ventilator.connect('tcp://{}:{}'.format(host, pull_port))
-
-        self.sink = context.socket(zmq.PUSH)
-        self.sink.connect('tcp://{}:{}'.format(host, push_port))
+        self.ventilator.connect('tcp://{}:{}'.format(host, port))
 
     def __call__(self, work):
         """Pull tasks from ventilator, push results to sink.
@@ -71,58 +67,11 @@ class Worker:
         while True:
 
             try:
-
-                # Pop task, process.
                 task = self.ventilator.recv_json()
-                result = work(**task)
-
-                # If a value is returned, push it back to the master.
-                if result:
-                    self.sink.send_json(result)
+                work(**task)
 
             except Exception as e:
                 print(e)
-
-
-class Sink:
-
-    @classmethod
-    def from_env(cls):
-        return cls(config['ports']['sink'])
-
-    def __init__(self, port):
-        """Initialize the socket.
-
-        Args:
-            port (int): Sink port.
-        """
-        context = zmq.Context()
-
-        self.socket = context.socket(zmq.PULL)
-        self.socket.bind('tcp://*:{}'.format(port))
-
-        self.results = []
-
-    def __call__(self, drain):
-        """Pull tasks from workers.
-
-        Args:
-            drain (func): Handle / persist results.
-        """
-        while True:
-
-            # TODO: Pass chunks?
-
-            try:
-                result = self.socket.recv_json()
-                self.results.append(result)
-
-            except Exception as e:
-                print(e)
-
-            if len(self.results) >= 1000:
-                drain(self.results)
-                self.results.clear()
 
 
 class ListWARCPaths:
@@ -157,15 +106,17 @@ class ParseWARC:
             config['buckets']['scraper'],
             config['buckets']['results'],
             config['dirs']['text'],
+            config['dirs']['document'],
         )
 
-    def __init__(self, warc_bucket, text_bucket, text_dir):
+    def __init__(self, warc_bucket, text_bucket, text_dir, document_dir):
         """Set input + output buckets.
 
         Args:
             warc_bucket (str): Scraper bucket.
             text_bucket (str): Text bucket.
-            text_dir (str): Path prefix inside of text bucket.
+            text_dir (str): Path prefix for extracted text.
+            document_dir (str): Path prefix for documents.
         """
         s3 = boto.connect_s3()
 
@@ -173,6 +124,9 @@ class ParseWARC:
         self.text_bucket = s3.get_bucket(text_bucket)
 
         self.text_dir = text_dir
+        self.document_dir = document_dir
+
+        self.results = []
 
     def __call__(self, warc_path):
         """Extract text, write to S3.
@@ -203,17 +157,30 @@ class ParseWARC:
             text_key.key = text_path
             text_key.set_contents_from_string(text)
 
-        # TODO: Get metadata.
-        return dict(
+        # Register metadata.
+        self.results.append(dict(
             corpus='syllascrape',
             identifier=record_id,
             url=warc.url(),
+        ))
+
+        if len(self.results) >= 1000:
+            self.flush()
+
+    def flush(self):
+        """Flush results to s3.
+        """
+        docs = ujson.dumps(self.results)
+
+        # Form S3 path.
+        path = os.path.join(
+            self.document_dir,
+            '{}.json'.format(str(uuid.uuid4())),
         )
 
+        # Write segment.
+        docs_key = Key(self.text_bucket)
+        docs_key.key = path
+        docs_key.set_contents_from_string(docs)
 
-# TODO|dev
-def write_doc_metadata(docs):
-    """Write document metadata to database.
-    """
-    session.bulk_insert_mappings(Document, docs)
-    session.commit()
+        self.results.clear()
