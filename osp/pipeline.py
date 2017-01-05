@@ -31,7 +31,7 @@ class ListWARCPaths:
         Returns: iter
         """
         for key in self.bucket.list():
-            yield dict(warc_path=key.name)
+            yield key.name
 
 
 class ParseWARC:
