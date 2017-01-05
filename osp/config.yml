@@ -14,3 +14,4 @@ buckets:
 
 dirs:
   text: text
+  document: document
