@@ -1,6 +1,6 @@
 
 
-from distributed import client
+from distributed import Client
 
 from osp.pipeline import ListWARCPaths, ParseWARC
 
