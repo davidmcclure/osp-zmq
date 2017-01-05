@@ -101,6 +101,8 @@ class Sink:
         self.socket = context.socket(zmq.PULL)
         self.socket.bind('tcp://*:{}'.format(port))
 
+        self.results = []
+
     def __call__(self, drain):
         """Pull tasks from workers.
 
@@ -113,10 +115,14 @@ class Sink:
 
             try:
                 result = self.socket.recv_json()
-                drain(result)
+                self.results.append(result)
 
             except Exception as e:
                 print(e)
+
+            if len(self.results) >= 1000:
+                drain(self.results)
+                self.results.clear()
 
 
 class ListWARCPaths:
@@ -206,8 +212,8 @@ class ParseWARC:
 
 
 # TODO|dev
-def write_doc_metadata(doc):
+def write_doc_metadata(docs):
     """Write document metadata to database.
     """
-    session.add(Document(**doc))
+    session.bulk_insert_mappings(Document, docs)
     session.commit()
