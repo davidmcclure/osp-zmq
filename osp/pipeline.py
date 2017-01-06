@@ -3,12 +3,18 @@
 import os
 import io
 import boto
+import csv
+import sys
+import random
 
 from boto.s3.key import Key
 from itertools import islice
 
+from textblob.classifiers import NaiveBayesClassifier
+
 from osp.services import config
 from osp.scraper_warc import ScraperWARC
+from osp.utils import read_csv
 
 
 class ScraperBucket:
@@ -63,3 +69,40 @@ class ExtractText:
         # Extract text.
         warc = ScraperWARC(blob)
         return warc.text()
+
+
+class ClassifySyllabus:
+
+    # TODO|dev: Train elsewhere, load model.
+
+    def __init__(self):
+        """Train the classifier.
+        """
+        csv.field_size_limit(sys.maxsize)
+
+        rows = read_csv('osp', 'data/osp-tags.csv')
+
+        tags = [
+            (row['text'], 'Syllabus' in row['tags'].split(','))
+            for row in rows
+            if len(row['text']) < 10000
+        ]
+
+        random.shuffle(tags)
+
+        train = tags[:50]
+
+        self.classifier = NaiveBayesClassifier(train)
+
+    def __call__(self, text):
+        """Return probability doc is a syllabus..
+
+        Args:
+            text (str)
+
+        Returns:
+            float: 0-1
+        """
+        pd = self.classifier.prob_classify(text)
+
+        return pd.prob(True)
