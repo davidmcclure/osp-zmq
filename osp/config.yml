@@ -6,7 +6,7 @@ hosts:
   master: localhost
 
 ports:
-  ventilator: 5557
+  scheduler: 5557
 
 buckets:
   scraper: syllascrape

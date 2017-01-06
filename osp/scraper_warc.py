@@ -25,15 +25,23 @@ class ScraperWARC:
 
         self.data = client.next_event()
 
-    def text(self):
-        """Extract plain text.
+    def mime_type(self):
+        """Try to parse the MIME type of the response.
 
-        Returns: str
+        Returns: str or None
         """
         if self.data == h11.NEED_DATA:
             return None
 
-        mime = magic.from_buffer(bytes(self.data.data), mime=True)
+        return magic.from_buffer(bytes(self.data.data), mime=True)
+
+    def text(self):
+        """Extract plain text.
+
+        Returns: str or None
+        """
+
+        mime = self.mime_type()
 
         if mime == 'text/html':
             return html_to_text(self.data.data)

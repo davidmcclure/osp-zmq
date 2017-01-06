@@ -1,6 +1,6 @@
 
 
-from sqlalchemy import Column, String
+from sqlalchemy import Column, String, DateTime
 
 from .base import Base
 
@@ -14,3 +14,7 @@ class Document(Base):
     identifier = Column(String, primary_key=True)
 
     url = Column(String)
+
+    retrieved = Column(DateTime)
+
+    mime_type = Column(String)
