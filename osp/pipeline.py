@@ -1,10 +1,7 @@
 
 
-import os
-import io
 import boto
 
-from boto.s3.key import Key
 from itertools import islice
 
 from osp.services import config
@@ -56,10 +53,5 @@ class ExtractText:
         Args:
             warc_path (str): WARC S3 path.
         """
-        # Pull WARC from S3.
-        key = self.bucket.get_key(path)
-        blob = io.BytesIO(key.get_contents_as_string())
-
-        # Extract text.
-        warc = ScraperWARC(blob)
+        warc = ScraperWARC.from_s3(path)
         return warc.text()
