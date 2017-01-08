@@ -14,7 +14,6 @@ from sqlalchemy.engine.url import URL
 class Config:
 
     _config = {}
-    _cache = {}
 
     @classmethod
     def read(cls):
@@ -37,10 +36,11 @@ class Config:
         if not self._config:
             self.read()
 
-        self.__dict__ = self._cache
-
     def __getitem__(self, key):
         return self._config[key]
+
+    def __setitem__(self, key, val):
+        self._config[key] = val
 
 
 class Database(Config):
