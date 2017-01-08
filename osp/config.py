@@ -2,18 +2,25 @@
 
 import os
 import anyconfig
+import boto
+
+from cached_property import cached_property
 
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, scoped_session
 from sqlalchemy.engine.url import URL
 
 
-class Config(dict):
+class Config:
+
+    _config = {}
+    _cache = {}
 
     @classmethod
-    def from_env(cls):
-        """Get a config instance with the default files.
+    def read(cls):
+        """Read configuration from files.
         """
+
         root = os.environ.get('OSP_CONFIG', '/etc/osp')
 
         # Default paths.
@@ -22,19 +29,24 @@ class Config(dict):
             os.path.join(root, 'osp.yml'),
         ]
 
-        return cls(paths)
+        cls._config = anyconfig.load(paths, ignore_missing=True)
 
-    def __init__(self, paths):
-        """Initialize the configuration object.
-
-        Args:
-            paths (list): YAML paths, from most to least specific.
+    def __init__(self):
+        """Hyrdate configuration.
         """
-        config = anyconfig.load(paths, ignore_missing=True)
+        if not self._config:
+            self.read()
 
-        return super().__init__(config)
+        self.__dict__ = self._cache
 
-    def build_sqla_url(self):
+    def __getitem__(self, key):
+        return self._config[key]
+
+
+class Database(Config):
+
+    @cached_property
+    def url(self):
         """Build an SQLAlchemy connection string.
 
         Returns: URL
@@ -44,14 +56,13 @@ class Config(dict):
             database=self['database'],
         ))
 
-    def build_sqla_engine(self):
+    @cached_property
+    def engine(self):
         """Build a SQLAlchemy engine.
 
         Returns: Engine
         """
-        url = self.build_sqla_url()
-
-        engine = create_engine(url)
+        engine = create_engine(self.url)
 
         # Fix transaction bugs in pysqlite.
 
@@ -65,13 +76,23 @@ class Config(dict):
 
         return engine
 
-    def build_sqla_session(self):
+    @cached_property
+    def session(self):
         """Build a scoped session manager.
 
         Returns: Session
         """
-        engine = self.build_sqla_engine()
-
-        factory = sessionmaker(bind=engine)
+        factory = sessionmaker(bind=self.engine)
 
         return scoped_session(factory)
+
+
+class Buckets(Config):
+
+    @cached_property
+    def s3(self):
+        return boto.connect_s3()
+
+    @cached_property
+    def scraper(self):
+        return self.s3.get_bucket(self['buckets']['scraper'])

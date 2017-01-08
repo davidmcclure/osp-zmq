@@ -1,8 +1,8 @@
 
 
-from osp.config import Config
+from osp.config import Database, Buckets
 
 
-config = Config.from_env()
+db = Database()
 
-session = config.build_sqla_session()
+buckets = Buckets()
