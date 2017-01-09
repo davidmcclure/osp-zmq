@@ -3,7 +3,7 @@
 database: osp.db
 
 hosts:
-  master: localhost
+  schedule: localhost
 
 ports:
   scheduler: 5557

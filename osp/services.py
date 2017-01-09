@@ -1,7 +1,9 @@
 
 
-from osp.config import Database, Buckets
+from osp.config import Config, Database, Buckets
 
+
+config = Config()
 
 db = Database()
 
