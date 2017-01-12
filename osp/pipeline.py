@@ -1,8 +1,10 @@
 
 
 import boto
+import os
 
 from itertools import islice
+from boto.s3.key import Key
 
 from osp.services import config
 from osp.scraper_warc import ScraperWARC
@@ -30,6 +32,30 @@ class ScraperBucket:
         """Skim off the first N paths in a crawl directory.
         """
         yield from islice(self.paths(crawl), n)
+
+
+class ResultBucket:
+
+    @classmethod
+    def from_env(cls):
+        return cls(config['buckets']['results'])
+
+    def __init__(self, name):
+        """Connect to the bucket.
+        """
+        s3 = boto.connect_s3()
+        self.bucket = s3.get_bucket(name)
+
+    def write_text(self, record_id, text):
+        """Write extracted text for a document.
+        """
+        # Form S3 path.
+        path = os.path.join('text', '{}.txt'.format(record_id))
+
+        # Write text.
+        key = Key(self.bucket)
+        key.key = path
+        key.set_contents_from_string(text)
 
 
 class ExtractText:
