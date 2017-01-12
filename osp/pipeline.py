@@ -60,18 +60,17 @@ class ResultBucket:
 
 class ExtractText:
 
-    @classmethod
-    def from_env(cls):
-        return cls(config['buckets']['scraper'])
+    # TODO: Where to parametrize?
 
-    def __init__(self, bucket):
+    def __init__(self):
         """Set input buckets.
 
         Args:
-            bucket (str): Scraper bucket.
+            warc_bucket (str): Scraper bucket.
+            text_bucket (str): Result bucket.
         """
-        s3 = boto.connect_s3()
-        self.bucket = s3.get_bucket(bucket)
+        self.warc_bucket = ScraperBucket.from_env()
+        self.text_bucket = ResultBucket.from_env()
 
     def __call__(self, path):
         """Extract text, write to S3.
@@ -80,4 +79,16 @@ class ExtractText:
             warc_path (str): WARC S3 path.
         """
         warc = ScraperWARC.from_s3(path)
-        return warc.text()
+
+        text = warc.text()
+
+        record_id = warc.record_id()
+
+        if text:
+            self.text_bucket.write_text(record_id, text)
+
+        return dict(
+            corpus='syllascrape',
+            identifier=record_id,
+            url=warc.url(),
+        )

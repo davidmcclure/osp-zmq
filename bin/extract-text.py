@@ -11,6 +11,6 @@ bucket = ScraperBucket.from_env()
 
 paths = bucket.first_n_paths('oct-16', 1000)
 
-extract_text = ExtractText.from_env()
+extract_text = ExtractText()
 
 text = client.map(extract_text, paths)
