@@ -14,3 +14,7 @@ paths = bucket.first_n_paths('oct-16', 1000)
 extract_text = ExtractText()
 
 text = client.map(extract_text, paths)
+
+results = client.gather(text)
+
+print(list(results))

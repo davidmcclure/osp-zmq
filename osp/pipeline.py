@@ -10,17 +10,33 @@ from osp.services import config
 from osp.scraper_warc import ScraperWARC
 
 
+class Singleton:
+
+    def __init__(self, decorated):
+        self._decorated = decorated
+
+    def Instance(self):
+        try:
+            return self._instance
+        except AttributeError:
+            self._instance = self._decorated()
+            return self._instance
+
+    def reset(self):
+        del self._instance
+
+    def __call__(self):
+        raise TypeError('Singletons must be accessed through `Instance()`.')
+
+
+@Singleton
 class ScraperBucket:
 
-    @classmethod
-    def from_env(cls):
-        return cls(config['buckets']['scraper'])
-
-    def __init__(self, name):
+    def __init__(self):
         """Connect to the bucket.
         """
         s3 = boto.connect_s3()
-        self.bucket = s3.get_bucket(name)
+        self.bucket = s3.get_bucket(config['buckets']['scraper'])
 
     def paths(self, crawl):
         """Get all WARC paths in a crawl directory.
