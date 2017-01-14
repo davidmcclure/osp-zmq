@@ -15,7 +15,7 @@ class ScraperWARC:
     def from_s3(cls, path):
         """Read from S3.
         """
-        bucket = ScraperBucket.Instance()
+        bucket = ScraperBucket()
 
         blob = bucket.read_bytes(path)
 

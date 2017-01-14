@@ -2,16 +2,15 @@
 
 from distributed import Client
 
-from osp.pipeline import ScraperBucket, ExtractText
+from osp.services import ScraperBucket
+from osp.pipeline import extract_text
 
 
 client = Client()
 
-bucket = ScraperBucket.from_env()
+bucket = ScraperBucket()
 
-paths = bucket.first_n_paths('oct-16', 1000)
-
-extract_text = ExtractText()
+paths = bucket.first_n_paths('jan-17-world', 1000)
 
 text = client.map(extract_text, paths)
 

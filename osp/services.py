@@ -20,7 +20,7 @@ class Singleton:
     def __init__(self, decorated):
         self._decorated = decorated
 
-    def Instance(self):
+    def __call__(self):
         try:
             return self._instance
         except AttributeError:
@@ -29,9 +29,6 @@ class Singleton:
 
     def reset(self):
         del self._instance
-
-    def __call__(self):
-        raise TypeError('Singletons must be accessed through `Instance()`.')
 
 
 @Singleton

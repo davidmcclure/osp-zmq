@@ -6,6 +6,12 @@ from osp.scraper_warc import ScraperWARC
 
 def extract_text(path):
     """Extract text, write to S3.
+
+    Args:
+        path (str): S3 path for WARC.
+
+    Returns:
+        dict: Document metadata.
     """
     warc = ScraperWARC.from_s3(path)
 
@@ -14,7 +20,7 @@ def extract_text(path):
     record_id = warc.record_id()
 
     if text:
-        bucket = ResultBucket.Instance()
+        bucket = ResultBucket()
         bucket.write_text(record_id, text)
 
     return dict(
