@@ -5,9 +5,15 @@ import os
 
 from itertools import islice
 from boto.s3.key import Key
+from cached_property import cached_property
+
+from sqlalchemy import create_engine, event
+from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.engine.url import URL
 
 from osp.services import config
 from osp.scraper_warc import ScraperWARC
+from osp import settings
 
 
 class Singleton:
@@ -30,13 +36,58 @@ class Singleton:
 
 
 @Singleton
+class Database:
+
+    @cached_property
+    def url(self):
+        """Build an SQLAlchemy connection string.
+
+        Returns: URL
+        """
+        return URL(**dict(
+            drivername='sqlite',
+            database=settings.DATABASE,
+        ))
+
+    @cached_property
+    def engine(self):
+        """Build a SQLAlchemy engine.
+
+        Returns: Engine
+        """
+        engine = create_engine(self.url)
+
+        # Fix transaction bugs in pysqlite.
+
+        @event.listens_for(engine, 'connect')
+        def connect(conn, record):
+            conn.isolation_level = None
+
+        @event.listens_for(engine, 'begin')
+        def begin(conn):
+            conn.execute('BEGIN')
+
+        return engine
+
+    @cached_property
+    def session(self):
+        """Build a scoped session manager.
+
+        Returns: Session
+        """
+        factory = sessionmaker(bind=self.engine)
+
+        return scoped_session(factory)
+
+
+@Singleton
 class ScraperBucket:
 
     def __init__(self):
         """Connect to the bucket.
         """
         s3 = boto.connect_s3()
-        self.bucket = s3.get_bucket(config['buckets']['scraper'])
+        self.bucket = s3.get_bucket(settings.SCRAPER_BUCKET)
 
     def paths(self, crawl):
         """Get all WARC paths in a crawl directory.
@@ -50,17 +101,14 @@ class ScraperBucket:
         yield from islice(self.paths(crawl), n)
 
 
+@Singleton
 class ResultBucket:
 
-    @classmethod
-    def from_env(cls):
-        return cls(config['buckets']['results'])
-
-    def __init__(self, name):
+    def __init__(self):
         """Connect to the bucket.
         """
         s3 = boto.connect_s3()
-        self.bucket = s3.get_bucket(name)
+        self.bucket = s3.get_bucket(settings.RESULT_BUCKET)
 
     def write_text(self, record_id, text):
         """Write extracted text for a document.
