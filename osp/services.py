@@ -1,10 +1,130 @@
 
 
-from osp.config import Config, Database, Buckets
+import os
+import boto
+import io
+
+from itertools import islice
+from boto.s3.key import Key
+from cached_property import cached_property
+
+from sqlalchemy import create_engine, event
+from sqlalchemy.orm import sessionmaker, scoped_session
+from sqlalchemy.engine.url import URL
+
+from osp import settings
 
 
-config = Config()
+class Singleton:
 
-db = Database()
+    def __init__(self, decorated):
+        self._decorated = decorated
 
-buckets = Buckets()
+    def Instance(self):
+        try:
+            return self._instance
+        except AttributeError:
+            self._instance = self._decorated()
+            return self._instance
+
+    def reset(self):
+        del self._instance
+
+    def __call__(self):
+        raise TypeError('Singletons must be accessed through `Instance()`.')
+
+
+@Singleton
+class Database:
+
+    @cached_property
+    def url(self):
+        """Build an SQLAlchemy connection string.
+
+        Returns: URL
+        """
+        return URL(**dict(
+            drivername='sqlite',
+            database=settings.DATABASE,
+        ))
+
+    @cached_property
+    def engine(self):
+        """Build a SQLAlchemy engine.
+
+        Returns: Engine
+        """
+        engine = create_engine(self.url)
+
+        # Fix transaction bugs in pysqlite.
+
+        @event.listens_for(engine, 'connect')
+        def connect(conn, record):
+            conn.isolation_level = None
+
+        @event.listens_for(engine, 'begin')
+        def begin(conn):
+            conn.execute('BEGIN')
+
+        return engine
+
+    @cached_property
+    def session(self):
+        """Build a scoped session manager.
+
+        Returns: Session
+        """
+        factory = sessionmaker(bind=self.engine)
+
+        return scoped_session(factory)
+
+
+class Bucket:
+
+    def __init__(self, name):
+        """Connect to the bucket.
+        """
+        s3 = boto.connect_s3()
+        self.bucket = s3.get_bucket(name)
+
+    def read_bytes(self, path):
+        """Read an object into BytesIO.
+        """
+        key = self.bucket.get_key(path)
+        return io.BytesIO(key.get_contents_as_string())
+
+
+@Singleton
+class ScraperBucket(Bucket):
+
+    def __init__(self):
+        super().__init__(settings.SCRAPER_BUCKET)
+
+    def paths(self, crawl):
+        """Get all WARC paths in a crawl directory.
+        """
+        for key in self.bucket.list(crawl+'/'):
+            yield key.name
+
+    def first_n_paths(self, crawl, n):
+        """Skim off the first N paths in a crawl directory.
+        """
+        yield from islice(self.paths(crawl), n)
+
+
+@Singleton
+class ResultBucket(Bucket):
+
+    def __init__(self):
+        super().__init__(settings.RESULT_BUCKET)
+
+    def write_text(self, record_id, text):
+        """Write extracted text for a document.
+        """
+        # Form S3 path.
+        path = os.path.join('text', '{}.txt'.format(record_id))
+
+        # Write text.
+        key = Key(self.bucket)
+        key.key = path
+        key.set_contents_from_string(text)

@@ -5,10 +5,8 @@ import h11
 import magic
 import io
 
-from boto.s3.key import Key
-
 from osp.utils import html_to_text, pdf_to_text, docx_to_text
-from osp.services import buckets
+from osp.services import ScraperBucket
 
 
 class ScraperWARC:
@@ -17,9 +15,9 @@ class ScraperWARC:
     def from_s3(cls, path):
         """Read from S3.
         """
-        key = buckets.scraper.get_key(path)
+        bucket = ScraperBucket.Instance()
 
-        blob = io.BytesIO(key.get_contents_as_string())
+        blob = bucket.read_bytes(path)
 
         return cls(blob)
 
