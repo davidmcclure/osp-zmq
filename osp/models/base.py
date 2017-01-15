@@ -2,9 +2,11 @@
 
 from sqlalchemy.ext.declarative import declarative_base
 
-from osp.services import session
+from osp.services import Database
 
+
+db = Database()
 
 Base = declarative_base()
 
-Base.query = session.query_property()
+Base.query = db.session.query_property()

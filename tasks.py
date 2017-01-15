@@ -2,23 +2,23 @@
 
 from invoke import task
 
-from osp.services import config
+from osp.services import Database
 from osp.models import Base
 
 
-engine = config.build_sqla_engine()
+db = Database()
 
 
 @task
 def init_db(ctx):
     """Create database tables.
     """
-    Base.metadata.create_all(engine)
+    Base.metadata.create_all(db.engine)
 
 
 @task
 def reset_db(ctx):
     """Drop and recreate database tables.
     """
-    Base.metadata.drop_all(engine)
+    Base.metadata.drop_all(db.engine)
     init_db(ctx)
