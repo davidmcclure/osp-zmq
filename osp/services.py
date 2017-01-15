@@ -5,8 +5,8 @@ import boto
 import io
 
 from itertools import islice
-from boto.s3.key import Key
 from cached_property import cached_property
+from boto.s3.key import Key
 
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, scoped_session

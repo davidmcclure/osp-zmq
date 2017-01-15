@@ -3,7 +3,6 @@
 import warc
 import h11
 import magic
-import io
 
 from osp.utils import html_to_text, pdf_to_text, docx_to_text
 from osp.services import ScraperBucket
