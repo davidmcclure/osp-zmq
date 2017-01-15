@@ -80,12 +80,20 @@ class Bucket:
 
     def __init__(self, name):
         """Connect to the bucket.
+
+        Args:
+            name (str): Bucket name.
         """
         s3 = boto.connect_s3()
         self.bucket = s3.get_bucket(name)
 
     def read_bytes(self, path):
         """Read an object into BytesIO.
+
+        Args:
+            path (str): Key path.
+
+        Returns: io.BytesIO
         """
         key = self.bucket.get_key(path)
         return io.BytesIO(key.get_contents_as_string())
@@ -99,12 +107,23 @@ class ScraperBucket(Bucket):
 
     def paths(self, crawl):
         """Get all WARC paths in a crawl directory.
+
+        Args:
+            crawl (str): Crawl directory name.
+
+        Yields: str
         """
         for key in self.bucket.list(crawl+'/'):
             yield key.name
 
     def first_n_paths(self, crawl, n):
         """Skim off the first N paths in a crawl directory.
+
+        Args:
+            crawl (str): Crawl directory name.
+            n (int): Yield N paths.
+
+        Yields: str
         """
         yield from islice(self.paths(crawl), n)
 
@@ -117,6 +136,10 @@ class ResultBucket(Bucket):
 
     def write_text(self, record_id, text):
         """Write extracted text for a document.
+
+        Args:
+            record_id (str): Record identifier.
+            text (str): Extracted text.
         """
         # Form S3 path.
         path = os.path.join('text', '{}.txt'.format(record_id))
