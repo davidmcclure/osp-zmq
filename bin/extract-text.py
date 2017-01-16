@@ -17,7 +17,7 @@ client = Client((
 print(dt.now(), 'start')
 
 # List paths.
-paths = scraper_bucket.first_n_paths('jan-17-world', 1000)
+paths = scraper_bucket.paths('jan-17-world')
 
 # Apply the worker.
 futures = client.map(extract_text, paths)
