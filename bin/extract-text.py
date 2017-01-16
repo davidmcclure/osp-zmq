@@ -14,10 +14,10 @@ client = Client((
     settings.SCHEDULER_PORT,
 ))
 
-print(dt.now())
+print(dt.now(), 'start')
 
 # List paths.
-paths = scraper_bucket.first_n_paths('jan-17-world', 100000)
+paths = scraper_bucket.first_n_paths('jan-17-world', 1000)
 
 # Apply the worker.
 futures = client.map(extract_text, paths)
@@ -28,4 +28,4 @@ metadata = client.gather(futures, errors='skip')
 # Insert metadata rows.
 Document.bulk_insert(metadata)
 
-print(dt.now())
+print(dt.now(), 'end')

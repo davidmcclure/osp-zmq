@@ -1,7 +1,8 @@
 
 
+from datetime import datetime as dt
+from sqlalchemy import Column, String, DateTime, Integer, Boolean
 from boltons.iterutils import chunked_iter
-from sqlalchemy import Column, String, DateTime, Integer
 
 from osp.services import db
 
@@ -15,6 +16,8 @@ class Document(Base):
     corpus = Column(String, primary_key=True)
 
     identifier = Column(String, primary_key=True)
+
+    has_text = Column(Boolean, nullable=False)
 
     url = Column(String)
 
@@ -32,6 +35,8 @@ class Document(Base):
             mappings (iter): Rows dicts.
             n (int): Page size.
         """
+        print(dt.now(), 'store')
+
         for chunk in chunked_iter(mappings, n):
             db.session.bulk_insert_mappings(cls, chunk)
 
