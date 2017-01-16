@@ -1,5 +1,7 @@
 
 
+import traceback
+
 from osp.services import result_bucket
 from osp.scraper_warc import ScraperWARC
 
@@ -13,8 +15,8 @@ def try_except(fn):
     def wrapped(*args, **kwargs):
         try:
             return fn(*args, **kwargs)
-        except Exception as e:
-            print(e)
+        except:
+            print(traceback.format_exc())
 
     return wrapped
 
