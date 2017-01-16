@@ -4,6 +4,8 @@ import warc
 import h11
 import magic
 
+from dateutil.parser import parse as parse_date
+
 from osp.utils import html_to_text, pdf_to_text, docx_to_text
 from osp.services import ScraperBucket
 
@@ -76,3 +78,17 @@ class ScraperWARC:
         Returns: str
         """
         return self.record.url
+
+    def date(self):
+        """Provide the download date.
+
+        Returns: str
+        """
+        return parse_date(self.record.date)
+
+    def content_length(self):
+        """Provide the content length.
+
+        Returns: int
+        """
+        return self.record.header.content_length

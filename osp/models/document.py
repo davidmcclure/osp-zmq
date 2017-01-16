@@ -1,7 +1,7 @@
 
 
 from boltons.iterutils import chunked_iter
-from sqlalchemy import Column, String, DateTime
+from sqlalchemy import Column, String, DateTime, Integer
 
 from osp.services import Database
 
@@ -18,9 +18,11 @@ class Document(Base):
 
     url = Column(String)
 
-    retrieved = Column(DateTime)
+    downloaded_at = Column(DateTime)
 
     mime_type = Column(String)
+
+    content_length = Column(Integer)
 
     # TODO: Move to base class.
     # TODO: Pass 'corpus' param?

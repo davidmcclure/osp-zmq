@@ -34,5 +34,7 @@ def extract_text(path):
         corpus='test',
         identifier=record_id,
         url=warc.url(),
+        downloaded_at=warc.date(),
         mime_type=warc.mime_type(),
+        content_length=warc.content_length(),
     )
