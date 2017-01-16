@@ -3,7 +3,7 @@
 from boltons.iterutils import chunked_iter
 from sqlalchemy import Column, String, DateTime, Integer
 
-from osp.services import Database
+from osp.services import db
 
 from .base import Base
 
@@ -24,8 +24,6 @@ class Document(Base):
 
     content_length = Column(Integer)
 
-    # TODO: Move to base class.
-    # TODO: Pass 'corpus' param?
     @classmethod
     def bulk_insert(cls, mappings, n=1000):
         """Bulk insert rows in pages.
@@ -34,9 +32,6 @@ class Document(Base):
             mappings (iter): Rows dicts.
             n (int): Page size.
         """
-        # TODO: Global singleton.
-        db = Database()
-
         for chunk in chunked_iter(mappings, n):
             db.session.bulk_insert_mappings(cls, chunk)
 

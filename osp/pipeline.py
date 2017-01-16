@@ -28,8 +28,6 @@ def extract_text(path):
     """
     warc = ScraperWARC.from_s3(path)
 
-    text = None
-
     text = warc.text()
 
     record_id = warc.record_id()
@@ -37,7 +35,7 @@ def extract_text(path):
     if text:
         result_bucket.write_text(record_id, text)
 
-    # TODO: Where to parametrize the corpus?
+    # TODO: Parametrize corpus.
     return dict(
         corpus='test',
         identifier=record_id,
