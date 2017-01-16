@@ -19,7 +19,7 @@ bucket = ScraperBucket()
 print(dt.now())
 
 # List paths.
-paths = bucket.first_n_paths('jan-17-world', 10000)
+paths = bucket.first_n_paths('jan-17-world', 100000)
 
 # Apply the worker.
 futures = client.map(extract_text, paths)
