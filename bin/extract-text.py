@@ -5,6 +5,7 @@ from distributed import Client
 from osp import settings
 from osp.services import ScraperBucket
 from osp.pipeline import extract_text
+from osp.models import Document
 
 
 client = Client((
@@ -14,10 +15,14 @@ client = Client((
 
 bucket = ScraperBucket()
 
+# List paths.
 paths = bucket.first_n_paths('jan-17-world', 1000)
 
+# Apply the worker.
 futures = client.map(extract_text, paths)
 
+# Gather results.
 metadata = client.gather(futures, errors='skip')
 
-print(list(metadata))
+# Insert metadata rows.
+Document.bulk_insert(metadata)

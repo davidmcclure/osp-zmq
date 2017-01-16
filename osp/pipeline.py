@@ -29,7 +29,9 @@ def extract_text(path):
         bucket = ResultBucket()
         bucket.write_text(record_id, text)
 
+    # TODO: Where to parametrize the corpus?
     return dict(
+        corpus='test',
         identifier=record_id,
         url=warc.url(),
     )
