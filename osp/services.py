@@ -3,6 +3,7 @@
 import os
 import boto
 import io
+import attr
 
 from itertools import islice
 from cached_property import cached_property
@@ -15,24 +16,14 @@ from sqlalchemy.engine.url import URL
 from osp import settings
 
 
-class Singleton:
-
-    def __init__(self, decorated):
-        self._decorated = decorated
-
-    def __call__(self):
-        try:
-            return self._instance
-        except AttributeError:
-            self._instance = self._decorated()
-            return self._instance
-
-    def reset(self):
-        del self._instance
-
-
-@Singleton
+@attr.s
 class Database:
+
+    db_path = attr.ib()
+
+    @classmethod
+    def from_settings(cls):
+        return cls(db_path=settings.DATABASE)
 
     @cached_property
     def url(self):
@@ -76,16 +67,17 @@ class Database:
         return scoped_session(factory)
 
 
+@attr.s
 class Bucket:
 
-    def __init__(self, name):
-        """Connect to the bucket.
+    name = attr.ib()
 
-        Args:
-            name (str): Bucket name.
+    @cached_property
+    def bucket(self):
+        """Connect to the bucket.
         """
         s3 = boto.connect_s3()
-        self.bucket = s3.get_bucket(name)
+        return s3.get_bucket(self.name)
 
     def read_bytes(self, path):
         """Read an object into BytesIO.
@@ -99,11 +91,11 @@ class Bucket:
         return io.BytesIO(key.get_contents_as_string())
 
 
-@Singleton
 class ScraperBucket(Bucket):
 
-    def __init__(self):
-        super().__init__(settings.SCRAPER_BUCKET)
+    @classmethod
+    def from_settings(cls):
+        return cls(name=settings.SCRAPER_BUCKET)
 
     def paths(self, crawl):
         """Get all WARC paths in a crawl directory.
@@ -128,11 +120,11 @@ class ScraperBucket(Bucket):
         yield from islice(self.paths(crawl), n)
 
 
-@Singleton
 class ResultBucket(Bucket):
 
-    def __init__(self):
-        super().__init__(settings.RESULT_BUCKET)
+    @classmethod
+    def from_settings(cls):
+        return cls(name=settings.RESULT_BUCKET)
 
     def write_text(self, record_id, text):
         """Write extracted text for a document.
