@@ -15,7 +15,12 @@ def extract_text(path):
     """
     warc = ScraperWARC.from_s3(path)
 
-    text = warc.text()
+    text = None
+
+    try:
+        text = warc.text()
+    except Exception as e:
+        print(e)
 
     record_id = warc.record_id()
 
