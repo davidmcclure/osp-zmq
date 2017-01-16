@@ -38,6 +38,9 @@ def extract_text(path):
     if text:
         result_bucket.write_text(record_id, text)
 
+    # TODO|debug
+    print(record_id)
+
     # TODO: Parametrize corpus.
     return dict(
         corpus='test',

@@ -84,7 +84,7 @@ class ResultBucket(Bucket):
             text (str): Extracted text.
         """
         # Form S3 path.
-        path = os.path.join('text2', '{}.txt'.format(record_id))
+        path = os.path.join('text3', '{}.txt'.format(record_id))
 
         # Write text.
         key = Key(self.bucket)
