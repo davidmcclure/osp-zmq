@@ -44,9 +44,12 @@ class ExtractText:
 
         self.counter += 1
 
+        # TODO: Wrap this up in a base S3 class?
         if self.counter % 80 == 0:
             scraper_bucket.bucket.connection.close()
             result_bucket.bucket.connection.close()
+
+        print('extract')
 
         # TODO: Parametrize corpus.
         return dict(
