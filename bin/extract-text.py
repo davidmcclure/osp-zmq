@@ -1,6 +1,7 @@
 
 
 from distributed import Client
+from datetime import datetime as dt
 
 from osp import settings
 from osp.services import ScraperBucket
@@ -15,6 +16,8 @@ client = Client((
 
 bucket = ScraperBucket()
 
+print(dt.now())
+
 # List paths.
 paths = bucket.first_n_paths('jan-17-world', 10000)
 
@@ -26,3 +29,5 @@ metadata = client.gather(futures, errors='skip')
 
 # Insert metadata rows.
 Document.bulk_insert(metadata)
+
+print(dt.now())
