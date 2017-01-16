@@ -35,10 +35,11 @@ class Document(Base):
             mappings (iter): Rows dicts.
             n (int): Page size.
         """
-        print(dt.now(), 'store')
-
         for chunk in chunked_iter(mappings, n):
-            rows = [m for m in mappings if m is not None]
-            db.session.bulk_insert_mappings(cls, rows)
 
-        db.session.commit()
+            rows = [m for m in mappings if m is not None]
+
+            db.session.bulk_insert_mappings(cls, rows)
+            db.session.commit()
+
+            print(dt.now(), 'store')
