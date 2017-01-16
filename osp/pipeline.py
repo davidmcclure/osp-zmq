@@ -49,7 +49,8 @@ class ExtractText:
             scraper_bucket.bucket.connection.close()
             result_bucket.bucket.connection.close()
 
-        print('extract')
+        if self.counter % 1000 == 0:
+            print('extract', self.counter)
 
         # TODO: Parametrize corpus.
         return dict(
