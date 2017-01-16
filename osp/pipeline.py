@@ -4,6 +4,19 @@ from osp.services import result_bucket
 from osp.scraper_warc import ScraperWARC
 
 
+def try_except(fn):
+    """Swallow exceptions.
+    """
+    def wrapped(*args, **kwargs):
+        try:
+            return fn(*args, **kwargs)
+        except Exception:
+            pass
+
+    return wrapped
+
+
+@try_except
 def extract_text(path):
     """Extract text, write to S3.
 
@@ -17,11 +30,7 @@ def extract_text(path):
 
     text = None
 
-    # TODO: Do this at the map level?
-    try:
-        text = warc.text()
-    except Exception as e:
-        print(e)
+    text = warc.text()
 
     record_id = warc.record_id()
 
