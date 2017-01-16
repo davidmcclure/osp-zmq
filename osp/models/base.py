@@ -9,4 +9,5 @@ db = Database()
 
 Base = declarative_base()
 
+# TODO: What if the Database singleton gets reset?
 Base.query = db.session.query_property()

@@ -17,6 +17,7 @@ def extract_text(path):
 
     text = None
 
+    # TODO: Do this at the map level?
     try:
         text = warc.text()
     except Exception as e:
