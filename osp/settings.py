@@ -8,7 +8,9 @@ from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 
 
-DATABASE = 'osp.db'
+DATABASE = os.environ.get(
+    'DATABASE', 'osp.db'
+)
 
 SCRAPER_BUCKET = 'syllascrape'
 
