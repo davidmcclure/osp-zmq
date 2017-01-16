@@ -13,8 +13,8 @@ def try_except(fn):
     def wrapped(*args, **kwargs):
         try:
             return fn(*args, **kwargs)
-        except Exception:
-            pass
+        except Exception as e:
+            print(e)
 
     return wrapped
 
