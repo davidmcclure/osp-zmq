@@ -1,5 +1,7 @@
 
 
+from datetime import datetime as dt
+
 from osp.services import result_bucket, scraper_bucket
 from osp.scraper_warc import ScraperWARC
 
@@ -50,7 +52,7 @@ class ExtractText:
             result_bucket.bucket.connection.close()
 
         if self.counter % 1000 == 0:
-            print('extract', self.counter)
+            print('extract', self.counter, dt.now())
 
         # TODO: Parametrize corpus.
         return dict(
