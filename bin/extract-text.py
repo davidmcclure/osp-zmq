@@ -18,6 +18,6 @@ paths = bucket.first_n_paths('jan-17-world', 1000)
 
 futures = client.map(extract_text, paths)
 
-metadata = client.gather(futures)
+metadata = client.gather(futures, errors='skip')
 
 print(list(metadata))
