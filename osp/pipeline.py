@@ -1,6 +1,6 @@
 
 
-from osp.services import result_bucket
+from osp.services import result_bucket, scraper_bucket
 from osp.scraper_warc import ScraperWARC
 
 
@@ -19,35 +19,42 @@ def try_except(fn):
     return wrapped
 
 
-@try_except
-def extract_text(path):
-    """Extract text, write to S3.
+class ExtractText:
 
-    Args:
-        path (str): S3 path for WARC.
+    def __init__(self):
+        self.counter = 0
 
-    Returns:
-        dict: Document metadata.
-    """
-    warc = ScraperWARC.from_s3(path)
+    def __call__(self, path):
+        """Extract text, write to S3.
 
-    text = warc.text()
+        Args:
+            path (str): S3 path for WARC.
 
-    record_id = warc.record_id()
+        Returns:
+            dict: Document metadata.
+        """
+        warc = ScraperWARC.from_s3(path)
 
-    if text:
-        result_bucket.write_text(record_id, text)
+        text = warc.text()
 
-    # TODO|debug
-    print(record_id)
+        record_id = warc.record_id()
 
-    # TODO: Parametrize corpus.
-    return dict(
-        corpus='test',
-        identifier=record_id,
-        has_text=bool(text),
-        url=warc.url(),
-        downloaded_at=warc.date(),
-        mime_type=warc.mime_type(),
-        content_length=warc.content_length(),
-    )
+        if text:
+            result_bucket.write_text(record_id, text)
+
+        self.counter += 1
+
+        if self.counter % 80 == 0:
+            scraper_bucket.bucket.connection.close()
+            result_bucket.bucket.connection.close()
+
+        # TODO: Parametrize corpus.
+        return dict(
+            corpus='test',
+            identifier=record_id,
+            has_text=bool(text),
+            url=warc.url(),
+            downloaded_at=warc.date(),
+            mime_type=warc.mime_type(),
+            content_length=warc.content_length(),
+        )

@@ -5,7 +5,7 @@ from datetime import datetime as dt
 
 from osp import settings
 from osp.services import scraper_bucket
-from osp.pipeline import extract_text
+from osp.pipeline import ExtractText
 from osp.models import Document
 
 
@@ -20,7 +20,7 @@ print(dt.now(), 'start')
 paths = scraper_bucket.paths('jan-17-world')
 
 # Apply the worker.
-futures = client.map(extract_text, paths)
+futures = client.map(ExtractText(), paths)
 
 # Gather results.
 metadata = client.gather(futures, errors='skip')

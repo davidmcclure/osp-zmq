@@ -6,7 +6,7 @@ import io
 import attr
 
 from itertools import islice
-from cached_property import cached_property_with_ttl
+from cached_property import cached_property
 from boto.s3.key import Key
 
 from osp import settings
@@ -17,8 +17,7 @@ class Bucket:
 
     name = attr.ib()
 
-    # TODO: Fix memory leak?
-    @cached_property_with_ttl(ttl=60)
+    @cached_property
     def bucket(self):
         """Connect to the bucket.
         """
@@ -91,4 +90,3 @@ class ResultBucket(Bucket):
         key = Key(self.bucket)
         key.key = path
         key.set_contents_from_string(text)
-        key.close()
