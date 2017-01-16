@@ -37,7 +37,7 @@ class Document(Base):
         """
         for chunk in chunked_iter(mappings, n):
 
-            rows = [m for m in mappings if m is not None]
+            rows = [r for r in chunk if r is not None]
 
             db.session.bulk_insert_mappings(cls, rows)
             db.session.commit()
