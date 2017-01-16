@@ -14,10 +14,10 @@ client = Client((
 
 bucket = ScraperBucket()
 
-paths = bucket.first_n_paths(100)
+paths = bucket.first_n_paths('jan-17-world', 1000)
 
 futures = client.map(extract_text, paths)
 
 metadata = client.gather(futures)
 
-print(metadata)
+print(list(metadata))
