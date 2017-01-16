@@ -91,3 +91,4 @@ class ResultBucket(Bucket):
         key = Key(self.bucket)
         key.key = path
         key.set_contents_from_string(text)
+        key.close()
