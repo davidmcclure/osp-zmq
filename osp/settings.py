@@ -18,4 +18,6 @@ SCHEDULER_HOST = os.environ.get(
     'SCHEDULER_HOST', 'localhost'
 )
 
-SCHEDULER_PORT = 5557
+SCHEDULER_PORT = int(os.environ.get(
+    'SCHEDULER_PORT', 5557
+))
