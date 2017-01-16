@@ -50,8 +50,13 @@ class ScraperBucket(Bucket):
 
         Yields: str
         """
-        for key in self.bucket.list(crawl+'/'):
+        for i, key in enumerate(self.bucket.list(crawl+'/')):
+
             yield key.name
+
+            # TODO|dev
+            if i % 1000 == 0:
+                print(i)
 
     def first_n_paths(self, crawl, n):
         """Skim off the first N paths in a crawl directory.
