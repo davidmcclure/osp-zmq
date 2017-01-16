@@ -7,7 +7,7 @@ import magic
 from dateutil.parser import parse as parse_date
 
 from osp.utils import html_to_text, pdf_to_text, docx_to_text
-from osp.services import ScraperBucket
+from osp.services import scraper_bucket
 
 
 class ScraperWARC:
@@ -16,9 +16,7 @@ class ScraperWARC:
     def from_s3(cls, path):
         """Read from S3.
         """
-        bucket = ScraperBucket()
-
-        blob = bucket.read_bytes(path)
+        blob = scraper_bucket.read_bytes(path)
 
         return cls(blob)
 

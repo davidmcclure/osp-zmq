@@ -1,6 +1,6 @@
 
 
-from osp.services import ResultBucket
+from osp.services import result_bucket
 from osp.scraper_warc import ScraperWARC
 
 
@@ -26,8 +26,7 @@ def extract_text(path):
     record_id = warc.record_id()
 
     if text:
-        bucket = ResultBucket()
-        bucket.write_text(record_id, text)
+        result_bucket.write_text(record_id, text)
 
     # TODO: Where to parametrize the corpus?
     return dict(

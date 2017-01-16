@@ -2,11 +2,8 @@
 
 from invoke import task
 
-from osp.services import Database
+from osp.services import db
 from osp.models import Base
-
-
-db = Database()
 
 
 @task
